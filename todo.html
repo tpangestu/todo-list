@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My To-Do List</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div id="app-container">
+        <header>
+            <div id="profile">
+                <h2 id="profile-nama">Nama Pengguna</h2>
+                <p id="profile-jabatan">Jabatan</p>
+            </div>
+            <div id="time">
+                <p id="current-date">Senin, 1 Januari 2025</p>
+            </div>
+            <button id="logout-button">Logout</button>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <h3>Buat Tugas Baru</h3>
+                <form id="task-form">
+                    <textarea id="task-input" placeholder="Tuliskan tugasmu di sini..." required></textarea>
+                    <div class="task-options">
+                        <input type="date" id="due-date" required>
+                        <textarea id="time-note" placeholder="Keterangan waktu (opsional)"></textarea>
+                        <div class="custom-select" id="priority-level-wrapper">
+                            <div class="select-selected" id="select-selected">Sedang</div>
+                            <ul class="select-options" id="select-options">
+                                <li data-value="low">Prioritas Rendah</li>
+                                <li data-value="medium" class="selected">Prioritas Sedang</li>
+                                <li data-value="high">Prioritas Tinggi</li>
+                            </ul>
+                        </div>
+                        <select id="priority-level" style="display: none;" required>
+                            <option value="low">Prioritas Rendah</option>
+                            <option value="medium" selected>Prioritas Sedang</Prioritas option>
+                            <option value="high">Prioritas Tinggi</option>
+                        </select>
+                        <button type="submit">Submit Tugas</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="list-container">
+                <div class="list-column">
+                    <h3>📝 To Do</h3>
+                    <ul id="todo-list">
+                        </ul>
+                </div>
+                <div class="list-column">
+                    <h3>✅ Done</h3>
+                    <ul id="done-list">
+                        </ul>
+                </div>
+            </div>
+            
+            <button id="delete-all-button">Hapus Semua Tugas</button>
+        </main>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <script src="js/app.js"></script>
+</body>
+</html>
