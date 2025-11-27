@@ -59,14 +59,23 @@ function setupApp(user) {
             profileNama.textContent = userData.nama || "Nama tidak tersedia";
             profileJabatan.textContent = userData.jabatan || "Jabatan tidak tersedia";
         } else {
-            console.log("Tidak ada data profil!");
-            profileNama.textContent = "Nama tidak ditemukan";
-            profileJabatan.textContent = "Jabatan tidak ditemukan";
+            console.log("Tidak ada data profil! Menampilkan form lengkapi profil...");
+            // Jika data profil tidak ada, minta user melengkapi profil
+            showProfileCompletionPrompt(user);
         }
     }).catch((error) => {
         console.error("Error getting document:", error);
-        profileNama.textContent = "Error memuat nama";
-        profileJabatan.textContent = "Error memuat jabatan";
+
+        // Cek apakah error karena permission atau tidak ada data
+        if (error.code === 'permission-denied') {
+            profileNama.textContent = "⚠️ Error Permission";
+            profileJabatan.textContent = "Periksa Firestore Rules";
+            alert('❌ Error: Tidak dapat mengakses data profil.\n\nPastikan Firestore Rules sudah diatur dengan benar di Firebase Console.');
+        } else {
+            // Kemungkinan data profil tidak ada
+            console.log("Data profil tidak ditemukan, tampilkan form");
+            showProfileCompletionPrompt(user);
+        }
     });
 
     // Atur tanggal
@@ -234,3 +243,46 @@ deleteAllButton.addEventListener('click', () => {
             console.error("Error removing documents: ", error);
         });
 });
+
+// Fungsi untuk menampilkan prompt melengkapi profil
+function showProfileCompletionPrompt(user) {
+    profileNama.textContent = "⚠️ Profil Belum Lengkap";
+    profileJabatan.textContent = "Klik di sini untuk melengkapi";
+
+    const nama = prompt("Profil Anda belum lengkap.\n\nMasukkan Nama Lengkap:");
+    if (!nama) {
+        alert("Profil tidak lengkap. Anda akan logout.");
+        auth.signOut();
+        return;
+    }
+
+    const jabatan = prompt("Masukkan Jabatan/Pekerjaan:");
+    if (!jabatan) {
+        alert("Profil tidak lengkap. Anda akan logout.");
+        auth.signOut();
+        return;
+    }
+
+    // Simpan data profil ke Firestore
+    db.collection('users').doc(user.uid).set({
+        nama: nama,
+        jabatan: jabatan,
+        email: user.email,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then(() => {
+        console.log('Profil berhasil dilengkapi');
+        profileNama.textContent = nama;
+        profileJabatan.textContent = jabatan;
+        alert('✅ Profil berhasil dilengkapi!');
+    })
+    .catch((error) => {
+        console.error('Error melengkapi profil:', error);
+        if (error.code === 'permission-denied') {
+            alert('❌ Error: Tidak dapat menyimpan profil.\n\nPastikan Firestore Rules sudah diatur dengan benar di Firebase Console.\n\nAnda akan logout.');
+        } else {
+            alert('❌ Error: ' + error.message + '\n\nAnda akan logout.');
+        }
+        auth.signOut();
+    });
+}

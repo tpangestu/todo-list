@@ -44,31 +44,51 @@ registerForm.addEventListener('submit', (e) => {
     const nama = document.getElementById('register-nama').value;
     const jabatan = document.getElementById('register-jabatan').value;
 
-    let createdUserId = null; // Variabel sementara untuk menyimpan UID
+    let createdUserId = null;
 
     auth.createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
-            createdUserId = userCredential.user.uid; // Simpan UID
-            // KUNCI: Lanjutkan ke rantai berikutnya untuk menyimpan data
+            createdUserId = userCredential.user.uid;
+            console.log('User berhasil dibuat dengan UID:', createdUserId);
+
+            // Simpan data profil dengan createdAt timestamp
             return db.collection('users').doc(createdUserId).set({
                 nama: nama,
-                jabatan: jabatan
+                jabatan: jabatan,
+                email: email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
         })
         .then(() => {
-            console.log('Data profil berhasil disimpan');
-            // KUNCI: Sekarang data sudah tersimpan, kita paksa logout
+            console.log('Data profil berhasil disimpan ke Firestore');
             return auth.signOut();
         })
         .then(() => {
-            // Setelah semua selesai dan user sudah logout, baru beri notifikasi
             alert('✅ Registrasi berhasil! Silakan login dengan akun baru Anda.');
             registerForm.reset();
-            flipContainer.classList.remove('is-flipped'); // Kembali ke halaman login
+            flipContainer.classList.remove('is-flipped');
         })
         .catch((error) => {
-            console.error('Error saat registrasi:', error);
-            alert(`Error Registrasi: ${error.message}`);
+            console.error('Error lengkap:', error);
+
+            // Hapus user jika gagal menyimpan data profil
+            if (createdUserId) {
+                const currentUser = auth.currentUser;
+                if (currentUser) {
+                    currentUser.delete().then(() => {
+                        console.log('User berhasil dihapus karena error saat menyimpan profil');
+                    }).catch((deleteError) => {
+                        console.error('Error saat menghapus user:', deleteError);
+                    });
+                }
+            }
+
+            // Tampilkan pesan error yang lebih informatif
+            if (error.code === 'permission-denied') {
+                alert('❌ Error: Izin Firestore ditolak. Pastikan Firestore Rules sudah diatur dengan benar.\n\nSilakan periksa Firebase Console > Firestore Database > Rules');
+            } else {
+                alert(`❌ Error Registrasi: ${error.message}`);
+            }
         });
 });
 
